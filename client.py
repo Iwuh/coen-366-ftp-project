@@ -61,9 +61,6 @@ def get(fileName):
     request = firstByte.to_bytes(1,'big') + secondByte.encode()
     clientSocket.send(request)
 
-    request = firstByte + secondByte
-    clientSocket.send(request.encode())
-
     dataReceived = clientSocket.recv(1).decode()
 
     if debug:
