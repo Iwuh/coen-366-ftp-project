@@ -73,8 +73,13 @@ def get(fileName):
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(dataReceived)
     if opcoderecvd == response.ResponseType.GET:
-        fileSize = int(dataReceived) #getting file size
+        fileNameReceived = clientSocket.recv(lengthrecvd).decode()
+        if fileName != fileNameReceived:
+            print("File name not found")
+            return
+        fileSize = int.from_bytes(clientSocket.recv(4), 'big')
         fileData = clientSocket.recv(fileSize) #getting file data
+
         #writing file
         with open(fileName, 'wb') as file:
             file.write(fileData)
@@ -126,7 +131,7 @@ def help():
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(dataReceived)
     if opcoderecvd == response.ResponseType.HELP:
-         print(dataReceived[5:].decode()) #printing 5 commands fetched from server
+        print(clientSocket.recv(lengthrecvd).decode()) #printing 5 commands fetched from server
     else:
         print("Help not found")
 
