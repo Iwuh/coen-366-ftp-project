@@ -2,7 +2,7 @@ import sys
 import os
 import unittest
 
-# Need to add parent directory to search path so that we can include modules under test
+# Add parent directory to import list so we can include request and response modules
 sys.path.append(os.path.join(sys.path[0], '..'))
 import response
 
@@ -44,6 +44,6 @@ class TestResponseMethods(unittest.TestCase):
         msg = response.encode_get_not_found()
 
         self.assertEqual(expected, msg)
-        
+
 if __name__ == "__main__":
     unittest.main()

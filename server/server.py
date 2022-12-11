@@ -1,6 +1,9 @@
 from socket import *
 import os
+import sys
 
+# Add parent directory to import list so we can include request and response modules
+sys.path.append(os.path.join(sys.path[0], '..'))
 import request
 import response
 

@@ -1,9 +1,12 @@
 #Ben Hitterman (40174961)
 #Purpose: Client of program that sends a message to the server and receives a response
 
-import os.path
+import os
 from socket import *
 import sys
+
+# Add parent directory to import list so we can include request and response modules
+sys.path.append(os.path.join(sys.path[0], '..'))
 import response
 
 #server linking to client format: python3file ipAddress portNumber debugMode
@@ -36,12 +39,12 @@ def put(fileName):
             fileData = file.read()
             clientSocket.send(fileData)
 
-        receivedData = clientSocket.recv(1).decode()
+        receivedData = clientSocket.recv(1)
 
         if debug:
-            print("Request sent in Debug mode: " + request)
-            print("Data sent in Debug mode: " + fileData)
-            print("Data received in Debug mode: " + receivedData)
+            print("Request sent in Debug mode: ", request)
+            print("Data sent in Debug mode: ", fileData)
+            print("Data received in Debug mode: ", receivedData)
 
         opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
         if opcoderecvd == response.ResponseType.PUT_CHANGE:
@@ -59,11 +62,11 @@ def get(fileName):
     request = firstByte.to_bytes(1,'big') + secondByte.encode()
     clientSocket.send(request)
 
-    receivedData = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent in Debug mode: " + request)
-        print("Data received in Debug mode: " + receivedData)
+        print("Request sent in Debug mode: ", request)
+        print("Data received in Debug mode: ", receivedData)
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.GET:
@@ -79,7 +82,7 @@ def get(fileName):
             file.write(fileData)
 
         if debug:
-            print("File data received in Debug mode: " + fileData)
+            print("File data received in Debug mode: ", fileData)
 
         print(fileName + " has been downloaded successfully")
     
@@ -90,16 +93,16 @@ def get(fileName):
 def change(oldFileName, newFileName):
     firstByte = (0b010 << 5) + len(oldFileName)
     secondByte = oldFileName
-    thirdByte = os.path.getsize(newFileName)
+    thirdByte = len(newFileName)
     fourthByte = newFileName
-    request = firstByte.to_bytes(1,'big') + secondByte.encode() + thirdByte.to_bytes(4,'big') + fourthByte.encode()
+    request = firstByte.to_bytes(1,'big') + secondByte.encode() + thirdByte.to_bytes(1,'big') + fourthByte.encode()
     clientSocket.send(request)
 
-    receivedData = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent in Debug mode: " + request)
-        print("Data received in Debug mode: " + receivedData)
+        print("Request sent in Debug mode: ", request)
+        print("Data received in Debug mode: ", receivedData)
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.PUT_CHANGE:
@@ -113,11 +116,11 @@ def help():
     request = firstByte.to_bytes(1,'big')
     clientSocket.send(request)
 
-    receivedData = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent: " + request)
-        print("Data received: " + receivedData)
+        print("Request sent: ", request)
+        print("Data received: ", receivedData)
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.HELP:
@@ -129,11 +132,11 @@ def unknownRequest(request):
     firstByte = request.encode()
     clientSocket.send(firstByte)
 
-    receivedData = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent in Debug mode: " + firstByte)
-        print("Data received in Debug mode: " + receivedData)
+        print("Request sent in Debug mode: ", firstByte)
+        print("Data received in Debug mode: ", receivedData)
     
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.ERR_UNKNOWN_REQUEST:
