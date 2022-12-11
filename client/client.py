@@ -140,17 +140,29 @@ def bye():
 
 
 while True:
-    request = input("myftp>")
-    request = request.split()
-    if request[0] == 'put':
-        put(request[1])
-    elif request[0] == 'get':
-        get(request[1])
-    elif request[0] == 'change':
-        change(request[1], request[2])
-    elif request[0] == 'help':
-        help()
-    elif request[0] == 'bye':
-        bye()
-    else:
-        unknownRequest(request[0])
+    command = input("myftp>")
+    command = command.split()
+    try:
+        if command[0] == 'put':
+            if len(command) < 2:
+                print("Syntax error: file name required")
+            else:
+                put(command[1])
+        elif command[0] == 'get':
+            if len(command) < 2:
+                print("Syntax error: file name required")
+            else:
+                get(command[1])
+        elif command[0] == 'change':
+            if len(command) < 3:
+                print("Syntax error: original and new file names required")
+            else:
+                change(command[1], command[2])
+        elif command[0] == 'help':
+            help()
+        elif command[0] == 'bye':
+            bye()
+        else:
+            print('Unknown command, try "help".')
+    except ValueError as e:
+        print("An error occurred while executing the command:", e)

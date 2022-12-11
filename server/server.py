@@ -41,7 +41,7 @@ def main():
             elif opcode == request.RequestType.HELP:
                 handle_help(connectionSocket)
             else:
-                connectionSocket.send(response.encode_unknown_request_response())
+                handle_unknown(connectionSocket)
 
 def handle_put(s: socket, filenameLength: int):
     fileName = s.recv(filenameLength).decode()
