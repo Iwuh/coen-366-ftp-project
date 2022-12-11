@@ -15,10 +15,10 @@ serverPort = int(sys.argv[2])
 #for Debug Mode
 if (sys.argv[3] == '0'):
     debug = False
-else:
+elif (sys.argv[3] == '1'):
     debug = True
 
-
+#creating and connecting socket (establishing connection)
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverIpAddress, serverPort))
 print('Session has been established')
@@ -36,16 +36,14 @@ def put(fileName):
             fileData = file.read()
             clientSocket.send(fileData)
 
-
-        dataReceived = clientSocket.recv(1).decode()
+        receivedData = clientSocket.recv(1).decode()
 
         if debug:
             print("Request sent in Debug mode: " + request)
             print("Data sent in Debug mode: " + fileData)
-            print("Data received in Debug mode: " + dataReceived)
+            print("Data received in Debug mode: " + receivedData)
 
-
-        opcoderecvd, lengthrecvd = response.decode_first_byte(dataReceived)
+        opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
         if opcoderecvd == response.ResponseType.PUT_CHANGE:
             print(fileName + " has been uploaded successfully")
         else:
@@ -61,14 +59,13 @@ def get(fileName):
     request = firstByte.to_bytes(1,'big') + secondByte.encode()
     clientSocket.send(request)
 
-    dataReceived = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1).decode()
 
     if debug:
         print("Request sent in Debug mode: " + request)
-        print("Data received in Debug mode: " + dataReceived)
+        print("Data received in Debug mode: " + receivedData)
 
-
-    opcoderecvd, lengthrecvd = response.decode_first_byte(dataReceived)
+    opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.GET:
         fileNameReceived = clientSocket.recv(lengthrecvd).decode()
         if fileName != fileNameReceived:
@@ -90,9 +87,6 @@ def get(fileName):
         print(fileName + " not found")
 
 
-
-    
-
 def change(oldFileName, newFileName):
     firstByte = (0b010 << 5) + len(oldFileName)
     secondByte = oldFileName
@@ -101,14 +95,13 @@ def change(oldFileName, newFileName):
     request = firstByte.to_bytes(1,'big') + secondByte.encode() + thirdByte.to_bytes(4,'big') + fourthByte.encode()
     clientSocket.send(request)
 
-    dataReceived = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1).decode()
 
     if debug:
         print("Request sent in Debug mode: " + request)
-        print("Data received in Debug mode: " + dataReceived)
+        print("Data received in Debug mode: " + receivedData)
 
-
-    opcoderecvd, lengthrecvd = response.decode_first_byte(dataReceived)
+    opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.PUT_CHANGE:
         print(oldFileName + " has been changed to " + newFileName + " successfully")
     elif opcoderecvd == response.ResponseType.ERR_CHANGE_FAILED:
@@ -120,13 +113,13 @@ def help():
     request = firstByte.to_bytes(1,'big')
     clientSocket.send(request)
 
-    dataReceived = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1).decode()
 
     if debug:
         print("Request sent: " + request)
-        print("Data received: " + dataReceived)
+        print("Data received: " + receivedData)
 
-    opcoderecvd, lengthrecvd = response.decode_first_byte(dataReceived)
+    opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.HELP:
         print(clientSocket.recv(lengthrecvd).decode()) #printing 5 commands fetched from server
     else:
@@ -136,21 +129,20 @@ def unknownRequest(request):
     firstByte = request.encode()
     clientSocket.send(firstByte)
 
-
-    dataReceived = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1).decode()
 
     if debug:
         print("Request sent in Debug mode: " + firstByte)
-        print("Data received in Debug mode: " + dataReceived)
+        print("Data received in Debug mode: " + receivedData)
     
-    opcoderecvd, lengthrecvd = response.decode_first_byte(dataReceived)
+    opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.ERR_UNKNOWN_REQUEST:
         print("Unknown request")
 
 
 def bye():
     clientSocket.close()
-    print("Connection closed")
+    print("Session is terminated")
     sys.exit()
 
 
