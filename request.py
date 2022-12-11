@@ -26,7 +26,7 @@ def encode_put(fileName: str, fileSize: int) -> bytes:
     Encodes a request to put a file with a specified name and size.
     Throws ValueError if the name is longer than 31 characters.
     '''
-    if len(fileName > 31):
+    if len(fileName) > 31:
         raise ValueError('File name cannot exceed 31 characters')
     firstByte = (RequestType.PUT.value << 5) + len(fileName)
     secondByte = fileName
@@ -38,7 +38,7 @@ def encode_get(fileName: str) -> bytes:
     Encodes a request to get a file with a specified name.
     Throws ValueError if the name is longer than 31 characters.
     '''
-    if len(fileName > 31):
+    if len(fileName) > 31:
         raise ValueError('File name cannot exceed 31 characters')
     firstByte = (RequestType.GET.value << 5) + len(fileName)
     secondByte = fileName
@@ -49,7 +49,7 @@ def encode_change(oldFileName: str, newFileName: str) -> bytes:
     Encodes a request to rename a file on the remote server.
     Throws ValueError if either name is longer than 31 characters.
     '''
-    if len(oldFileName > 31) or len(newFileName > 31):
+    if len(oldFileName) > 31 or len(newFileName) > 31:
         raise ValueError('File name cannot exceed 31 characters')
     firstByte = (RequestType.CHANGE.value << 5) + len(oldFileName)
     secondByte = oldFileName
