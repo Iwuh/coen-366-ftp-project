@@ -7,6 +7,7 @@ import sys
 
 # Add parent directory to import list so we can include request and response modules
 sys.path.append(os.path.join(sys.path[0], '..'))
+import request
 import response
 
 #server linking to client format: python3file ipAddress portNumber debugMode
@@ -29,11 +30,7 @@ print('Session has been established')
 
 def put(fileName):
     if os.path.isfile(fileName):
-        firstByte = (0b000 << 5) + len(fileName)
-        secondByte = fileName
-        thirdByte = os.path.getsize(fileName)
-        request = firstByte.to_bytes(1,'big') + secondByte.encode() + thirdByte.to_bytes(4,'big')
-        clientSocket.send(request)
+        requestMessage = request.encode_put(fileName, os.path.getsize(fileName))
 
         with open(fileName, 'rb') as file:
             fileData = file.read()
@@ -42,9 +39,9 @@ def put(fileName):
         receivedData = clientSocket.recv(1)
 
         if debug:
-            print("Request sent in Debug mode: ", request)
-            print("Data sent in Debug mode: ", fileData)
-            print("Data received in Debug mode: ", receivedData)
+            print("Request sent in Debug mode:", requestMessage)
+            print("Data sent in Debug mode:", fileData)
+            print("Response received in Debug mode:", receivedData)
 
         opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
         if opcoderecvd == response.ResponseType.PUT_CHANGE:
@@ -57,15 +54,13 @@ def put(fileName):
 
 
 def get(fileName):
-    firstByte = (0b001 << 5) + len(fileName)
-    secondByte = fileName
-    request = firstByte.to_bytes(1,'big') + secondByte.encode()
-    clientSocket.send(request)
+    requestMessage = request.encode_get(fileName)
+    clientSocket.send(requestMessage)
 
     receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent in Debug mode: ", request)
+        print("Request sent in Debug mode: ", requestMessage)
         print("Data received in Debug mode: ", receivedData)
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
@@ -91,17 +86,13 @@ def get(fileName):
 
 
 def change(oldFileName, newFileName):
-    firstByte = (0b010 << 5) + len(oldFileName)
-    secondByte = oldFileName
-    thirdByte = len(newFileName)
-    fourthByte = newFileName
-    request = firstByte.to_bytes(1,'big') + secondByte.encode() + thirdByte.to_bytes(1,'big') + fourthByte.encode()
-    clientSocket.send(request)
+    requestMessage = request.encode_change(oldFileName, newFileName)
+    clientSocket.send(requestMessage)
 
     receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent in Debug mode: ", request)
+        print("Request sent in Debug mode: ", requestMessage)
         print("Data received in Debug mode: ", receivedData)
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
@@ -112,14 +103,13 @@ def change(oldFileName, newFileName):
 
 
 def help():
-    firstByte = 0b01100000
-    request = firstByte.to_bytes(1,'big')
-    clientSocket.send(request)
+    requestMessage = request.encode_help()
+    clientSocket.send(requestMessage)
 
     receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent: ", request)
+        print("Request sent: ", requestMessage)
         print("Data received: ", receivedData)
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
