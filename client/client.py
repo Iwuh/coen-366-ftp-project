@@ -31,6 +31,7 @@ print('Session has been established')
 def put(fileName):
     if os.path.isfile(fileName):
         requestMessage = request.encode_put(fileName, os.path.getsize(fileName))
+        clientSocket.send(requestMessage)
 
         with open(fileName, 'rb') as file:
             fileData = file.read()

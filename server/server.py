@@ -27,6 +27,12 @@ def main():
 
         while True:
             b1 = connectionSocket.recv(1)
+            if not b1:
+                if debug:
+                    print("Client disconnected")
+                connectionSocket.close()
+                break
+            
             opcode, length = request.decode_first_byte(b1)
 
             if debug:
