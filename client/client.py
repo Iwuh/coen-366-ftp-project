@@ -1,5 +1,6 @@
-#Ben Hitterman (40174961)
-#Purpose: Client of program that sends a message to the server and receives a response
+# Authors: Ben Hitterman (40174961), Matthew Faigan (40175089)
+# Purpose: Client program that accepts user commands then sends a message to the server and receives a response
+# We certify that this submission is the original work of members of the group and meets the Faculty's Expectations of Originality.
 
 import os
 from socket import *

@@ -1,3 +1,7 @@
+# Authors: Ben Hitterman (40174961), Matthew Faigan (40175089)
+# Purpose: Unit tests for the request encoding/decoding functions.
+# We certify that this submission is the original work of members of the group and meets the Faculty's Expectations of Originality.
+
 import sys
 import os
 import unittest

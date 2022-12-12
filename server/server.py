@@ -1,3 +1,7 @@
+# Authors: Ben Hitterman (40174961), Matthew Faigan (40175089)
+# Purpose: Server that accepts a connection from a client, then receives commands, processes them, and returns responses.
+# We certify that this submission is the original work of members of the group and meets the Faculty's Expectations of Originality.
+
 from socket import *
 import os
 import sys
