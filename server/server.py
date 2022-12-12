@@ -37,20 +37,21 @@ def main():
                 connectionSocket.close()
                 break
             
-            opcode, length = request.decode_first_byte(b1)
-
             if debug:
                 print("Received request header", b1)
 
-            if opcode == request.RequestType.PUT:
-                handle_put(connectionSocket, length)
-            elif opcode == request.RequestType.GET:
-                handle_get(connectionSocket, length)
-            elif opcode == request.RequestType.CHANGE:
-                handle_change(connectionSocket, length)
-            elif opcode == request.RequestType.HELP:
-                handle_help(connectionSocket)
-            else:
+            try:
+                opcode, length = request.decode_first_byte(b1)
+
+                if opcode == request.RequestType.PUT:
+                    handle_put(connectionSocket, length)
+                elif opcode == request.RequestType.GET:
+                    handle_get(connectionSocket, length)
+                elif opcode == request.RequestType.CHANGE:
+                    handle_change(connectionSocket, length)
+                elif opcode == request.RequestType.HELP:
+                    handle_help(connectionSocket)
+            except ValueError:
                 handle_unknown(connectionSocket)
 
 def handle_put(s: socket, filenameLength: int):
