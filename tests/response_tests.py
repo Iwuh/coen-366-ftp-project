@@ -1,8 +1,12 @@
+# Authors: Ben Hitterman (40174961), Matthew Faigan (40175089)
+# Purpose: Unit tests for the response encoding/decoding functions.
+# We certify that this submission is the original work of members of the group and meets the Faculty's Expectations of Originality.
+
 import sys
 import os
 import unittest
 
-# Need to add parent directory to search path so that we can include modules under test
+# Add parent directory to import list so we can include request and response modules
 sys.path.append(os.path.join(sys.path[0], '..'))
 import response
 
@@ -44,6 +48,6 @@ class TestResponseMethods(unittest.TestCase):
         msg = response.encode_get_not_found()
 
         self.assertEqual(expected, msg)
-        
+
 if __name__ == "__main__":
     unittest.main()

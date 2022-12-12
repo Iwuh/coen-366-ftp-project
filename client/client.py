@@ -1,9 +1,14 @@
-#Ben Hitterman (40174961)
-#Purpose: Client of program that sends a message to the server and receives a response
+# Authors: Ben Hitterman (40174961), Matthew Faigan (40175089)
+# Purpose: Client program that accepts user commands then sends a message to the server and receives a response
+# We certify that this submission is the original work of members of the group and meets the Faculty's Expectations of Originality.
 
-import os.path
+import os
 from socket import *
 import sys
+
+# Add parent directory to import list so we can include request and response modules
+sys.path.append(os.path.join(sys.path[0], '..'))
+import request
 import response
 
 #server linking to client format: python3file ipAddress portNumber debugMode
@@ -26,22 +31,19 @@ print('Session has been established')
 
 def put(fileName):
     if os.path.isfile(fileName):
-        firstByte = (0b000 << 5) + len(fileName)
-        secondByte = fileName
-        thirdByte = os.path.getsize(fileName)
-        request = firstByte.to_bytes(1,'big') + secondByte.encode() + thirdByte.to_bytes(4,'big')
-        clientSocket.send(request)
+        requestMessage = request.encode_put(fileName, os.path.getsize(fileName))
+        clientSocket.send(requestMessage)
 
         with open(fileName, 'rb') as file:
             fileData = file.read()
             clientSocket.send(fileData)
 
-        receivedData = clientSocket.recv(1).decode()
+        receivedData = clientSocket.recv(1)
 
         if debug:
-            print("Request sent in Debug mode: " + request)
-            print("Data sent in Debug mode: " + fileData)
-            print("Data received in Debug mode: " + receivedData)
+            print("Request sent in Debug mode:", requestMessage)
+            print("Data sent in Debug mode:", fileData)
+            print("Response received in Debug mode:", receivedData)
 
         opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
         if opcoderecvd == response.ResponseType.PUT_CHANGE:
@@ -54,16 +56,14 @@ def put(fileName):
 
 
 def get(fileName):
-    firstByte = (0b001 << 5) + len(fileName)
-    secondByte = fileName
-    request = firstByte.to_bytes(1,'big') + secondByte.encode()
-    clientSocket.send(request)
+    requestMessage = request.encode_get(fileName)
+    clientSocket.send(requestMessage)
 
-    receivedData = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent in Debug mode: " + request)
-        print("Data received in Debug mode: " + receivedData)
+        print("Request sent in Debug mode: ", requestMessage)
+        print("Data received in Debug mode: ", receivedData)
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.GET:
@@ -79,7 +79,7 @@ def get(fileName):
             file.write(fileData)
 
         if debug:
-            print("File data received in Debug mode: " + fileData)
+            print("File data received in Debug mode: ", fileData)
 
         print(fileName + " has been downloaded successfully")
     
@@ -88,18 +88,14 @@ def get(fileName):
 
 
 def change(oldFileName, newFileName):
-    firstByte = (0b010 << 5) + len(oldFileName)
-    secondByte = oldFileName
-    thirdByte = os.path.getsize(newFileName)
-    fourthByte = newFileName
-    request = firstByte.to_bytes(1,'big') + secondByte.encode() + thirdByte.to_bytes(4,'big') + fourthByte.encode()
-    clientSocket.send(request)
+    requestMessage = request.encode_change(oldFileName, newFileName)
+    clientSocket.send(requestMessage)
 
-    receivedData = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent in Debug mode: " + request)
-        print("Data received in Debug mode: " + receivedData)
+        print("Request sent in Debug mode: ", requestMessage)
+        print("Data received in Debug mode: ", receivedData)
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.PUT_CHANGE:
@@ -109,15 +105,14 @@ def change(oldFileName, newFileName):
 
 
 def help():
-    firstByte = 0b01100000
-    request = firstByte.to_bytes(1,'big')
-    clientSocket.send(request)
+    requestMessage = request.encode_help()
+    clientSocket.send(requestMessage)
 
-    receivedData = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent: " + request)
-        print("Data received: " + receivedData)
+        print("Request sent: ", requestMessage)
+        print("Data received: ", receivedData)
 
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.HELP:
@@ -129,11 +124,11 @@ def unknownRequest(request):
     firstByte = request.encode()
     clientSocket.send(firstByte)
 
-    receivedData = clientSocket.recv(1).decode()
+    receivedData = clientSocket.recv(1)
 
     if debug:
-        print("Request sent in Debug mode: " + firstByte)
-        print("Data received in Debug mode: " + receivedData)
+        print("Request sent in Debug mode: ", firstByte)
+        print("Data received in Debug mode: ", receivedData)
     
     opcoderecvd, lengthrecvd = response.decode_first_byte(receivedData)
     if opcoderecvd == response.ResponseType.ERR_UNKNOWN_REQUEST:
@@ -147,17 +142,29 @@ def bye():
 
 
 while True:
-    request = input("myftp>")
-    request = request.split()
-    if request[0] == 'put':
-        put(request[1])
-    elif request[0] == 'get':
-        get(request[1])
-    elif request[0] == 'change':
-        change(request[1], request[2])
-    elif request[0] == 'help':
-        help()
-    elif request[0] == 'bye':
-        bye()
-    else:
-        unknownRequest(request[0])
+    command = input("myftp>")
+    command = command.split()
+    try:
+        if command[0] == 'put':
+            if len(command) < 2:
+                print("Syntax error: file name required")
+            else:
+                put(command[1])
+        elif command[0] == 'get':
+            if len(command) < 2:
+                print("Syntax error: file name required")
+            else:
+                get(command[1])
+        elif command[0] == 'change':
+            if len(command) < 3:
+                print("Syntax error: original and new file names required")
+            else:
+                change(command[1], command[2])
+        elif command[0] == 'help':
+            help()
+        elif command[0] == 'bye':
+            bye()
+        else:
+            print('Unknown command, try "help".')
+    except ValueError as e:
+        print("An error occurred while executing the command:", e)

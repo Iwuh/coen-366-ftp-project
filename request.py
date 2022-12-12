@@ -21,17 +21,45 @@ def decode_first_byte(b: bytes) -> Tuple[RequestType, int]:
     l = i & 0b00011111
     return (o, l)
 
-def encode_put(filename: str, filesize: int) -> bytes:
+def encode_put(fileName: str, fileSize: int) -> bytes:
+    '''
+    Encodes a request to put a file with a specified name and size.
+    Throws ValueError if the name is longer than 31 characters.
+    '''
+    if len(fileName) > 31:
+        raise ValueError('File name cannot exceed 31 characters')
+    firstByte = (RequestType.PUT.value << 5) + len(fileName)
+    secondByte = fileName
+    thirdByte = fileSize
+    return firstByte.to_bytes(1,'big') + secondByte.encode() + thirdByte.to_bytes(4,'big')
 
-    # Get opcode and filename length
-    o = RequestType.PUT.value
-    l = len(filename)
-    if l > 31:
-        raise ValueError('Filename must be 31 characters or less')
+def encode_get(fileName: str) -> bytes:
+    '''
+    Encodes a request to get a file with a specified name.
+    Throws ValueError if the name is longer than 31 characters.
+    '''
+    if len(fileName) > 31:
+        raise ValueError('File name cannot exceed 31 characters')
+    firstByte = (RequestType.GET.value << 5) + len(fileName)
+    secondByte = fileName
+    return firstByte.to_bytes(1,'big') + secondByte.encode()
 
-    # Create first byte, filename bytes, filesize bytes
-    b1 = ((o << 5) + l).to_bytes(1, 'big')
-    filename_bytes = filename.encode()
-    filesize_bytes = filesize.to_bytes(4, 'big')
-    # Concatenate and return
-    return b1 + filename_bytes + filesize_bytes
+def encode_change(oldFileName: str, newFileName: str) -> bytes:
+    '''
+    Encodes a request to rename a file on the remote server.
+    Throws ValueError if either name is longer than 31 characters.
+    '''
+    if len(oldFileName) > 31 or len(newFileName) > 31:
+        raise ValueError('File name cannot exceed 31 characters')
+    firstByte = (RequestType.CHANGE.value << 5) + len(oldFileName)
+    secondByte = oldFileName
+    thirdByte = len(newFileName)
+    fourthByte = newFileName
+    return firstByte.to_bytes(1,'big') + secondByte.encode() + thirdByte.to_bytes(1,'big') + fourthByte.encode()
+
+def encode_help() -> bytes:
+    '''
+    Encodes a request for the list of valid commands from the server.
+    '''
+    firstByte = RequestType.HELP.value << 5
+    return firstByte.to_bytes(1,'big')
