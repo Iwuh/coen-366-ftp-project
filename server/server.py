@@ -57,7 +57,20 @@ def main():
 def handle_put(s: socket, filenameLength: int):
     fileName = s.recv(filenameLength).decode()
     fileSize = int.from_bytes(s.recv(4), 'big')
-    fileData = s.recv(fileSize)
+
+    fileData = b''
+    bytesRead = 0
+    while bytesRead < fileSize:
+        bytesRemaining = fileSize - bytesRead
+        if bytesRemaining > 4096:
+            buf = s.recv(4096)
+            fileData += buf
+            bytesRead += len(buf)
+        else:
+            buf = s.recv(bytesRemaining)
+            fileData += buf
+            bytesRead += len(buf)
+    
     with open(fileName, "wb") as f:
         f.write(fileData)
     s.send(response.encode_put_change_successful())

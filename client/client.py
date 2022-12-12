@@ -36,6 +36,7 @@ def put(fileName):
 
         with open(fileName, 'rb') as file:
             fileData = file.read()
+            print(len(fileData))
             clientSocket.send(fileData)
 
         receivedData = clientSocket.recv(1)
@@ -72,7 +73,19 @@ def get(fileName):
             print("File name not found")
             return
         fileSize = int.from_bytes(clientSocket.recv(4), 'big')
-        fileData = clientSocket.recv(fileSize) #getting file data
+
+        fileData = b''
+        bytesRead = 0
+        while bytesRead < fileSize:
+            bytesRemaining = fileSize - bytesRead
+            if bytesRemaining > 4096:
+                buf = clientSocket.recv(4096)
+                fileData += buf
+                bytesRead += len(buf)
+            else:
+                buf = clientSocket.recv(bytesRemaining)
+                fileData += buf
+                bytesRead += len(buf)
 
         #writing file
         with open(fileName, 'wb') as file:
